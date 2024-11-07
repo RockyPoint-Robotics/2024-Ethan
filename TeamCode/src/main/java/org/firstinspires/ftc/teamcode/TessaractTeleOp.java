@@ -21,7 +21,6 @@ public class TessaractTeleOp extends OpMode {
     public Servo claw;
     public Vector2D lJoyPos = Vector2D.ZERO;
     double armSpeed = 2;
-    private KeyPairGenerator imu;
 
     @Override
     public void init() {
@@ -31,15 +30,6 @@ public class TessaractTeleOp extends OpMode {
         bRMotor = hardwareMap.get(DcMotor.class, "BR");
         armMotor = hardwareMap.get(DcMotor.class, "ARM");
         claw = hardwareMap.get(Servo.class, "CLAW");
-        imu = hardwareMap.get(IMU.class, "imu");
-        imuParams = new IMU.Parameters(
-                new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-                        RevHubOrientationOnRobot.UsbFacingDirection.UP
-                )
-        );
-        imu.initialize(imuParams);
-        imu.resetYaw();
     }
 
     @Override
@@ -50,18 +40,6 @@ public class TessaractTeleOp extends OpMode {
         double lJoyAngle = Math.atan2(y, x);
         double lJoyDistance = Math.sqrt(x * x + y * y);
         double rx = gamepad1.right_stick_x;
-
-
-
-
-
-
-        //double Yaw   = robotOrientation.getYaw(AngleUnit.DEGREES);
-
-
-
-
-
 
         // Calculates movement power
 
