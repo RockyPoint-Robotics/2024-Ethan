@@ -1,12 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.google.blocks.ftcrobotcontroller.runtime.ImuAccess;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+
+import com.qualcomm.robotcore.hardware.IMU;
 
 import java.security.KeyPairGenerator;
 
@@ -18,6 +21,9 @@ public class TessaractTeleOp extends OpMode {
     public DcMotor bLMotor;
     public DcMotor bRMotor;
     public DcMotor armMotor;
+    public IMU imu;
+    public IMU.Parameters imuParams;
+    public YawPitchRollAngles robotOrientation;
     public Servo claw;
     public Vector2D lJoyPos = Vector2D.ZERO;
     double armSpeed = 2;
@@ -40,6 +46,17 @@ public class TessaractTeleOp extends OpMode {
         double lJoyAngle = Math.atan2(y, x);
         double lJoyDistance = Math.sqrt(x * x + y * y);
         double rx = gamepad1.right_stick_x;
+        double yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
+
+        imu = hardwareMap.get(IMU.class, "imu");
+        imuParams = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+                        RevHubOrientationOnRobot.UsbFacingDirection.UP
+                )
+        );
+        imu.initialize(imuParams);
+        imu.resetYaw();
 
         // Calculates movement power
 
@@ -66,5 +83,7 @@ public class TessaractTeleOp extends OpMode {
         if (gamepad1.b) {
             claw.setPosition(0);
         }
+
+        telemetry.addData("Angle: ", yaw);
     }
 }
