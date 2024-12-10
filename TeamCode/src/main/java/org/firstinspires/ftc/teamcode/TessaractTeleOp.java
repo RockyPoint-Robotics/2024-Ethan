@@ -12,21 +12,38 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import java.security.KeyPairGenerator;
+import java.sql.Array;
 
 @TeleOp(name="Tessaract")
 public class TessaractTeleOp extends OpMode {
 
+    // Motors
     public DcMotor fLMotor;
     public DcMotor fRMotor;
     public DcMotor bLMotor;
     public DcMotor bRMotor;
     public DcMotor armMotor;
+
+    // IMU
     public IMU imu;
     public IMU.Parameters imuParams;
     public YawPitchRollAngles robotOrientation;
-    public Servo claw;
-    public Vector2D lJoyPos = Vector2D.ZERO;
+
+    // Configurations
     double armSpeed = 2;
+    double angleThreshold = 5; // Angle that the robot snaps to
+    double angleSnapping = 45;
+    double basketHeight = 0; // Unknown, change later
+
+    // Functions
+    public double lerp(double start, double target, double alpha) {
+        double output = start + (target - start) * alpha;
+        return output;
+    }
+
+    // Controller Variables
+    Vector2D LJoyVector = Vector2D.ZERO; // X will be the angle, Y will be the magnitude
+    Vector2D RJoyVector = Vector2D.ZERO;
 
     @Override
     public void init() {
@@ -35,55 +52,39 @@ public class TessaractTeleOp extends OpMode {
         bLMotor = hardwareMap.get(DcMotor.class, "BL");
         bRMotor = hardwareMap.get(DcMotor.class, "BR");
         armMotor = hardwareMap.get(DcMotor.class, "ARM");
-        claw = hardwareMap.get(Servo.class, "CLAW");
-    }
-
-    @Override
-    public void loop() {
-        Vector2D lJoyPos = new Vector2D(gamepad1.left_stick_x, gamepad1.left_stick_y);
-        double y = gamepad1.left_stick_y; // Remember, Y stick is reversed!
-        double x = gamepad1.left_stick_x;
-        double lJoyAngle = Math.atan2(y, x);
-        double lJoyDistance = Math.sqrt(x * x + y * y);
-        double rx = gamepad1.right_stick_x;
-        double yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
 
         imu = hardwareMap.get(IMU.class, "imu");
         imuParams = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
+                        // Make sure to change this when moving the control hub
                         RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                         RevHubOrientationOnRobot.UsbFacingDirection.UP
                 )
         );
+    }
+
+    @Override
+    public void loop() {
+        robotOrientation = imu.getRobotYawPitchRollAngles();
+
+        double yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
+        double pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
+        double roll = robotOrientation.getRoll(AngleUnit.DEGREES);
+
         imu.initialize(imuParams);
         imu.resetYaw();
 
-        // Calculates movement power
+        LJoyVector = new Vector2D(gamepad1.left_stick_x, gamepad1.left_stick_y);
+        double angle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) * (180/Math.PI);
+        double magnitude = LJoyVector.getNorm();
+        LJoyVector = new Vector2D(angle-yaw, magnitude);
+        LJoyVector = new Vector2D(Math.sin(LJoyVector.getX()), Math.cos(LJoyVector.getX()));
 
-        fLMotor.setPower(-y + x + rx);
-        bLMotor.setPower(-y - x + rx);
-        fRMotor.setPower(-y - x - rx);
-        bRMotor.setPower(-y + x - rx);
+        RJoyVector = new Vector2D(gamepad1.right_stick_x, gamepad1.right_stick_y);
 
-        // Arm speed on dPad press
-
-        if (gamepad1.dpad_up){
-            armMotor.setPower(1 / armSpeed);
-        } else if (gamepad1.dpad_down){
-            armMotor.setPower(-1 / armSpeed);
-        } else {
-            armMotor.setPower(0);
-        }
-
-        // Claw position on button press
-
-        if (gamepad1.a) {
-            claw.setPosition(1);
-        }
-        if (gamepad1.b) {
-            claw.setPosition(0);
-        }
-
-        telemetry.addData("Angle: ", yaw);
+        bLMotor.setPower(-LJoyVector.getY() - LJoyVector.getX() + RJoyVector.getX());
+        fRMotor.setPower(-LJoyVector.getY() - LJoyVector.getX() - RJoyVector.getX());
+        bRMotor.setPower(-LJoyVector.getY() + LJoyVector.getX() - RJoyVector.getX());
+        fLMotor.setPower(-LJoyVector.getY() + LJoyVector.getX() + RJoyVector.getX());
     }
 }
