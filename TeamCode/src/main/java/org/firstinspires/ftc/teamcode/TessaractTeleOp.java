@@ -4,6 +4,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -31,8 +32,10 @@ public class TessaractTeleOp extends OpMode {
 
     // Configurations
     double armSpeed = 2;
-    double angleThreshold = 5; // Angle that the robot snaps to
-    double angleSnapping = 45;
+    double rotAngleThreshold = 5; // Angle that the robot snaps to rotation wise
+    double posAngleThreshold = 5; // Angle that the robot snaps to movement wise
+    double rotAngleSnapping = 45;
+    double posAngleSnapping = 45;
     double basketHeight = 0; // Unknown, change later
 
     // Functions
@@ -51,6 +54,13 @@ public class TessaractTeleOp extends OpMode {
         fRMotor = hardwareMap.get(DcMotor.class, "FR");
         bLMotor = hardwareMap.get(DcMotor.class, "BL");
         bRMotor = hardwareMap.get(DcMotor.class, "BR");
+
+        fLMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        fRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        bLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        bRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
         armMotor = hardwareMap.get(DcMotor.class, "ARM");
 
         imu = hardwareMap.get(IMU.class, "imu");
@@ -75,10 +85,28 @@ public class TessaractTeleOp extends OpMode {
         imu.resetYaw();
 
         LJoyVector = new Vector2D(gamepad1.left_stick_x, gamepad1.left_stick_y);
-        double angle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) * (180/Math.PI);
-        double magnitude = LJoyVector.getNorm();
-        LJoyVector = new Vector2D(angle-yaw, magnitude);
-        LJoyVector = new Vector2D(Math.sin(LJoyVector.getX()), Math.cos(LJoyVector.getX()));
+        double angle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x);
+        double magnitude = 0;
+        if (LJoyVector.getX() + LJoyVector.getY() != 0) {
+            magnitude = LJoyVector.getNorm();
+        }
+
+        // Conversions from Degrees to Radians
+
+        rotAngleThreshold = rotAngleThreshold * Math.PI / 180;
+        posAngleThreshold = posAngleThreshold * Math.PI / 180;
+        rotAngleSnapping = rotAngleSnapping * Math.PI / 180;
+        posAngleSnapping = posAngleSnapping * Math.PI / 180;
+
+        if (gamepad1.right_bumper) {
+            // Grid Movement Snapping Mode
+
+            if (posAngleThreshold < angle || angle < (posAngleSnapping - posAngleThreshold)) {
+                // angle =
+            }
+        }
+
+        LJoyVector = new Vector2D(Math.sin(angle-yaw) * magnitude, Math.cos(angle-yaw) * magnitude);
 
         RJoyVector = new Vector2D(gamepad1.right_stick_x, gamepad1.right_stick_y);
 
@@ -86,5 +114,16 @@ public class TessaractTeleOp extends OpMode {
         fRMotor.setPower(-LJoyVector.getY() - LJoyVector.getX() - RJoyVector.getX());
         bRMotor.setPower(-LJoyVector.getY() + LJoyVector.getX() - RJoyVector.getX());
         fLMotor.setPower(-LJoyVector.getY() + LJoyVector.getX() + RJoyVector.getX());
+
+        // Telemetry
+
+        telemetry.addData("Adjusted Angle", angle-yaw);
+        telemetry.addData("Angle", angle);
+        telemetry.addData("Magnitude", magnitude);
+
+        telemetry.addData("Yaw", yaw);
+        telemetry.addData("Pitch", pitch);
+        telemetry.addData("Roll", roll);
+
     }
 }

@@ -22,12 +22,12 @@ public class DrivingTesting extends OpMode {
         fRMotor = hardwareMap.get(DcMotor.class, "FR");
         bLMotor = hardwareMap.get(DcMotor.class, "BL");
         bRMotor = hardwareMap.get(DcMotor.class, "BR");
-        // armMotor = hardwareMap.get(DcMotor.class, "ARM");
+        armMotor = hardwareMap.get(DcMotor.class, "ARM");
 
-        fRMotor.setDirection(DcMotor.Direction.REVERSE);
-        bRMotor.setDirection(DcMotor.Direction.FORWARD);
-        fLMotor.setDirection(DcMotor.Direction.FORWARD);
-        bLMotor.setDirection(DcMotor.Direction.REVERSE);
+        fLMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        fRMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        bLMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        bRMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     @Override
@@ -38,16 +38,32 @@ public class DrivingTesting extends OpMode {
 
         // Calculates movement power
 
-        fLMotor.setPower(gamepad1.right_trigger);
-        bLMotor.setPower(gamepad1.right_trigger);
-        fRMotor.setPower(gamepad1.right_trigger);
-        bRMotor.setPower(gamepad1.right_trigger);
+        if (gamepad1.a) {
+            fLMotor.setPower(1);
+        } else {
+            fLMotor.setPower(0);
+        }
+        if (gamepad1.b) {
+            bLMotor.setPower(1);
+        } else {
+            bLMotor.setPower(0);
+        }
+        if (gamepad1.x) {
+            fRMotor.setPower(1);
+        } else {
+            fRMotor.setPower(0);
+        }
+        if (gamepad1.y) {
+            bRMotor.setPower(1);
+        } else {
+            bRMotor.setPower(0);
+        }
 
-        fLMotor.setPower(gamepad1.left_stick_x);
-        bLMotor.setPower(gamepad1.left_stick_y);
-        fRMotor.setPower(gamepad1.right_stick_x);
-        bRMotor.setPower(gamepad1.right_stick_y);
+        fLMotor.setPower(-y + x - rx);
+        bLMotor.setPower(-y - x + rx);
+        fRMotor.setPower(-y - x - rx);
+        bRMotor.setPower(-y + x + rx);
 
-        // armMotor.setPower(gamepad1.right_trigger);
+        armMotor.setPower(gamepad1.right_trigger);
     }
 }

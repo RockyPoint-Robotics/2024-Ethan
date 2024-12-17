@@ -55,8 +55,6 @@ public class TessaractTeleOpBackup extends OpMode {
             }
         }
 
-
-
         imu = hardwareMap.get(IMU.class, "imu");
         imuParams = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
