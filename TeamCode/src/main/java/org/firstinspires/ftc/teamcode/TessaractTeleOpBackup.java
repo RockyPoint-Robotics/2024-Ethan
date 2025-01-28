@@ -13,7 +13,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 @TeleOp(name="Backup")
 public class TessaractTeleOpBackup extends OpMode {
-
     public DcMotor fLMotor;
     public DcMotor fRMotor;
     public DcMotor bLMotor;
@@ -45,7 +44,11 @@ public class TessaractTeleOpBackup extends OpMode {
         double lJoyAngle = Math.atan2(y, x);
         double lJoyDistance = Math.sqrt(x * x + y * y);
         double rx = gamepad1.right_stick_x;
-        double yaw = robotOrientation.getYaw(AngleUnit.DEGREES); // YAW of robot
+        double yaw; // YAW of robot
+        yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
+        double calibratedYaw = lJoyAngle - yaw;
+//        double anglePosX = Math.sin(LJoyAngle - yaw) * LJoyMagnitude;
+//        double anglePosY = Math.cos(LJoyAngle - yaw) * LJoyMagnitude;
 
         double numbers[] = {0, 90, 180, 270};
 
